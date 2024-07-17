@@ -32,34 +32,6 @@
 #define INVALID_HANDLE   0
 #define BOOT_BUTTON_GPIO  GPIO_NUM_0  // Assuming GPIO0 is used for the boot button
 
-//Function to generate a random number and convert it to a string
-static void random_no_Generator(char *payload, size_t payload_size) {
-                        if (payload == NULL || payload_size == 0) {
-                            // Log an error if buffer is NULL or size is zero
-                            ESP_LOGE(GATTC_TAG, "Invalid buffer or size");
-                            return;
-                        }
-
-                        // Generate a random number
-                        uint32_t random_no = esp_random();
-
-                        // Extract the last 2 digits of the random number
-                        uint8_t rem = random_no % 100;
-
-                        // Log the random number
-                        ESP_LOGI(GATTC_TAG, "The Random no is: %u", rem);
-
-                        // Format the random number as a string
-                        int result = snprintf(payload, payload_size, "%02u", rem);
-
-                        if (result < 0) {
-                            // Log an error if snprintf fails
-                            ESP_LOGE(GATTC_TAG, "Failed to format the random number");
-                        } else if ((size_t)result >= payload_size) {
-                            // Log a warning if the result was truncated
-                            ESP_LOGW(GATTC_TAG, "Payload truncated: buffer too small");
-                        }
-                    }
 
 static const char remote_device_name[] = "ESP_GATTS_DEMO"; // This is the name o fthe device we want to connect to ;}
 static bool connect_    = false;
@@ -67,6 +39,7 @@ static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result   = NULL;
 static esp_gattc_descr_elem_t *descr_elem_result = NULL;
 
+char store_rand[1024];
 /* Declare static functions */
 static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
@@ -242,7 +215,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             ESP_LOGE(GATTC_TAG, "REG FOR NOTIFY failed: error status = %d", p_data->reg_for_notify.status);
         }else{
             uint16_t count = 0;
-            uint16_t notify_en = 1;
             esp_gatt_status_t ret_status = esp_ble_gattc_get_attr_count( gattc_if,
                                                                          gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                                                          ESP_GATT_DB_DESCRIPTOR,
@@ -274,17 +246,16 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                     }
                     /* Every char has only one descriptor in our 'ESP_GATTS_DEMO' demo, so we used first 'descr_elem_result' */
                     if (count > 0 && descr_elem_result[0].uuid.len == ESP_UUID_LEN_16 && descr_elem_result[0].uuid.uuid.uuid16 == ESP_GATT_UUID_CHAR_CLIENT_CONFIG){
-                       char payload[128];
-                       random_no_Generator(payload, sizeof(payload));
-                       ESP_LOGI(GATTC_TAG, "The Random no: %s", payload);
+
+                       
                        ret_status = esp_ble_gattc_write_char(gattc_if,
                                  gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                  gl_profile_tab[PROFILE_A_APP_ID].char_handle,
-                                 strlen(payload),
-                                 (uint8_t *)&payload,
+                                 strlen(store_rand),
+                                 (uint8_t *)&store_rand,
                                  ESP_GATT_WRITE_TYPE_RSP,
                                  ESP_GATT_AUTH_REQ_NONE);
-                        ESP_LOGI(GATTC_TAG, "The Message sent: %s", payload);
+                        ESP_LOGI(GATTC_TAG, "The Message sent: %s", store_rand);
                         
                     }
 
@@ -332,13 +303,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         
     
         break;
-    // case ESP_GATTC_SRVC_CHG_EVT: {
-    //     esp_bd_addr_t bda;
-    //     memcpy(bda, p_data->srvc_chg.remote_bda, sizeof(esp_bd_addr_t));
-    //     ESP_LOGI(GATTC_TAG, "ESP_GATTC_SRVC_CHG_EVT, bd_addr:");
-    //     esp_log_buffer_hex(GATTC_TAG, bda, sizeof(esp_bd_addr_t));
-    //     break;
-    //}
     case ESP_GATTC_WRITE_CHAR_EVT:
         if (p_data->write.status != ESP_GATT_OK){
             ESP_LOGE(GATTC_TAG, "write char failed, error status = %x", p_data->write.status);
@@ -486,9 +450,10 @@ static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
     } while (0);
 }
 
-static void ble_init()
+esp_err_t ble_init(void *buffer, size_t buffer_size)
 {
     // Initialize NVS.
+    strncpy(store_rand, buffer, sizeof(store_rand) - 1);
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
@@ -502,25 +467,25 @@ static void ble_init()
     ret = esp_bt_controller_init(&bt_cfg);
     if (ret) {
         ESP_LOGE(GATTC_TAG, "%s initialize controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);   // To select BLE Mode.
     if (ret) {
         ESP_LOGE(GATTC_TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_bluedroid_init();
     if (ret) {
         ESP_LOGE(GATTC_TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_bluedroid_enable();
     if (ret) {
         ESP_LOGE(GATTC_TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     //register the  callback function to the gap module
@@ -528,7 +493,7 @@ static void ble_init()
                                                      // esp_gap_cb() handle all the events generated by the BLE stack for GAP
     if (ret){
         ESP_LOGE(GATTC_TAG, "%s gap register failed, error code = %x", __func__, ret);
-        return;
+        return ret;
     }
 
     //register the callback function to the gattc module
@@ -536,7 +501,7 @@ static void ble_init()
                                                           // esp_gattc_cb() handle all the events generated by the BLE stack for GATT
     if(ret){
         ESP_LOGE(GATTC_TAG, "%s gattc register failed, error code = %x", __func__, ret);
-        return;
+        return ret;
     }
 
     ret = esp_ble_gattc_app_register(PROFILE_A_APP_ID);     // GATT Event handler registration
@@ -547,6 +512,8 @@ static void ble_init()
     if (local_mtu_ret){
         ESP_LOGE(GATTC_TAG, "set local  MTU failed, error code = %x", local_mtu_ret);
     }
+
+    return ESP_OK;
 
 
 }
