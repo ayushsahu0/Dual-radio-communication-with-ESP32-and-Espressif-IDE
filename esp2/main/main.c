@@ -39,16 +39,45 @@ static void delay (){
     return;
 }
 
-static void udp(){
-   udp_init();
-   udp_client_task();
-}
 
 void app_main()
-{ 
-    delay();
-    ble_init();
-    udp();
-    
-   return ;
+{
+    delay(); // Ensure any necessary initialization is done
+
+    // Initialize BLE (Bluetooth Low Energy)
+    esp_err_t ble_result = ble_init();
+    if (ble_result == ESP_OK)
+    {
+        ESP_LOGI(TAG, "BLE initialization successful.");
+
+        // Initialize UDP
+        esp_err_t udp_result = udp_init_();
+        if (udp_result == ESP_OK)
+        {
+            ESP_LOGI(TAG, "UDP initialization successful.");
+
+            // Create a FreeRTOS task to handle UDP server operations
+            if (xTaskCreate(udp_client_task, "udp_client_task", 4096 / sizeof(StackType_t), NULL, 5, NULL) != pdPASS) 
+            {
+                ESP_LOGE(TAG, "Failed to create UDP server task.");
+            }
+            else
+            {
+                ESP_LOGI(TAG, "UDP server task started.");
+            }
+        }
+        else
+        {
+            ESP_LOGE(TAG, "UDP initialization failed.");
+        }
+    }
+    else
+    {
+        ESP_LOGE(TAG, "BLE initialization failed.");
+    }
+
+    // Code here should be reached if tasks were successfully created
+    ESP_LOGI(TAG, "I am Here");
 }
+
+
