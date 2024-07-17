@@ -704,7 +704,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
     } while (0);
 }
 
-static void ble_init()
+esp_err_t ble_init()
 {
     // Initialize NVS.
     esp_err_t ret = nvs_flash_init();
@@ -720,45 +720,45 @@ static void ble_init()
     ret = esp_bt_controller_init(&bt_cfg);
     if (ret) {
         ESP_LOGE(GATTS_TAG, "%s initialize controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
     if (ret) {
         ESP_LOGE(GATTS_TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_bluedroid_init();
     if (ret) {
         ESP_LOGE(GATTS_TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
     ret = esp_bluedroid_enable();
     if (ret) {
         ESP_LOGE(GATTS_TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
-        return;
+        return ret;
     }
 
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gatts register error, error code = %x", ret);
-        return;
+        return ret;
     }
     ret = esp_ble_gap_register_callback(gap_event_handler);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gap register error, error code = %x", ret);
-        return;
+        return ret;
     }
     ret = esp_ble_gatts_app_register(PROFILE_A_APP_ID);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
-        return;
+        return ret;
     }
     ret = esp_ble_gatts_app_register(PROFILE_B_APP_ID);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
-        return;
+        return ret;
     }
     esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(500);
     if (local_mtu_ret){
@@ -766,6 +766,6 @@ static void ble_init()
     }
     
     
-    return;
+    return ESP_OK;
 }
 #endif 
