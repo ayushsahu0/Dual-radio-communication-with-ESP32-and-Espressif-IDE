@@ -39,10 +39,10 @@
 
 #define TAG  "UDP_Server"
 
-static void udp_server_task()
+static void udp_server_task(void *buffer, size_t buffer_size)
 {
     // Buffer to hold received data
-    char rx_buffer[128];
+    char *char_buffer = (char *)buffer; // Cast void * to char *
 
     // Variables for address family and IP protocol
     int addr_family = 0;
@@ -105,7 +105,7 @@ static void udp_server_task()
     while (1) {
         struct sockaddr_storage source_addr; // Storage for source address (IPv4 or IPv6)
         socklen_t socklen = sizeof(source_addr);
-        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
+        int len = recvfrom(sock, char_buffer, sizeof(char_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
 
         // Error occurred during receiving
         if (len < 0) {
@@ -116,14 +116,14 @@ static void udp_server_task()
         } 
         // Data received successfully
         else {
-            rx_buffer[len] = 0; // Null-terminate the received data
+            char_buffer[len] = 0; // Null-terminate the received data
 
             // Log sender's IP address and received data
             if (source_addr.ss_family == AF_INET) {
                 char addr_str[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, &(((struct sockaddr_in *)&source_addr)->sin_addr), addr_str, sizeof(addr_str));
                 ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
-                ESP_LOGI(TAG, "%s", rx_buffer);
+                ESP_LOGI(TAG, "%s", char_buffer);
             } else if (source_addr.ss_family == AF_INET6) {
                 char addr_str[INET6_ADDRSTRLEN];
                 inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)&source_addr)->sin6_addr), addr_str, sizeof(addr_str));
@@ -133,12 +133,17 @@ static void udp_server_task()
             // Define the acknowledgment message
             const char *ack_message = "Ack_msg";
 
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
+
             // Send acknowledgment message back to the client
+            for(int i =0; i<2 ; i++){
             int err = sendto(sock, ack_message, strlen(ack_message), 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
             if (err < 0) {
                 ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
             } else {
                 ESP_LOGI(TAG, "Acknowledgment message sent: %s", ack_message);
+            }
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
             }
 
             // Exit the loop after sending acknowledgment
@@ -163,13 +168,14 @@ static void udp_server_task()
     ESP_LOGI(TAG, "Wi-Fi driver stopped");
     esp_wifi_deinit();
     ESP_LOGI(TAG, "Wi-Fi driver deinitialized");
+    vTaskDelay(4000 / portTICK_PERIOD_MS);
 
-    // Clean up the task
     vTaskDelete(NULL);
-    ESP_LOGI(TAG, "Task deleted");
+    return;
+    
 }
 
-static void udp_init()
+esp_err_t udp_init_()
 {
     
     ESP_ERROR_CHECK(nvs_flash_init()); // Initialize NVS flash
@@ -189,6 +195,7 @@ static void udp_init()
     }
     
     //xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL); // Create the UDP server task
+    return ESP_OK;
 }
 
 #endif // WIFI_H
