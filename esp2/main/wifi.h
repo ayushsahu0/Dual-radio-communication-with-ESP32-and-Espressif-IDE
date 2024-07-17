@@ -152,10 +152,11 @@ static void udp_client_task()
 
     // Clean up the task
     vTaskDelete(NULL);
+    return;
 }
 
 
-static void udp_init()
+esp_err_t udp_init_()
 {
     ESP_ERROR_CHECK(nvs_flash_init()); // Initialize NVS flash
     ESP_ERROR_CHECK(esp_netif_init()); // Initialize network interface
@@ -174,6 +175,7 @@ static void udp_init()
     }
 
     //xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL); // Create the UDP client task
+    return ESP_OK;
 }
 
 #endif // WIFI_H
