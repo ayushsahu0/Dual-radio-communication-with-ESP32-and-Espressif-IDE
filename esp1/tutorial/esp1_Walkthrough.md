@@ -117,27 +117,27 @@ static void random_no_Generator(char *payload, size_t payload_size) {
 
 1. **Parameter Check:**
 
-•  The function first checks if the payload buffer is NULL or if payload_size is zero. If either condition is true, it logs an error and exits the function.
+•  The function first checks if the payload buffer is NULL or if `payload_size` is zero. If either condition is true, it logs an error and exits the function.
 
 2. **Random Number Generation:**
 
-•  The function uses esp_random() to generate a random number. This function utilizes the ESP32’s hardware random number generator.
+•  The function uses `esp_random()` to generate a random number. This function utilizes the ESP32’s hardware random number generator.
 
 3. **Extracting the Last Two Digits:**
 
-•  The last two digits of the random number are obtained using the modulo operation (random_no % 100).
+•  The last two digits of the random number are obtained using the modulo operation (`random_no % 100`).
 
 4. **Logging the Random Number:**
 
-•  The function logs the generated random number using ESP_LOGI.
+•  The function logs the generated random number using `ESP_LOGI`.
 
 5. **Formatting the Number:**
 
-•  The random number is formatted as a two-digit string and stored in the payload buffer using snprintf.
+•  The random number is formatted as a two-digit string and stored in the payload buffer using `snprintf`.
 
 6. **Error Handling:**
 
-•  The function checks if snprintf was successful. If not, it logs an error. If the buffer size was too small, it logs a warning.
+•  The function checks if `snprintf` was successful. If not, it logs an error. If the buffer size was too small, it logs a warning.
 
   
 
@@ -193,25 +193,25 @@ void app_main() {
 
 1. **Button Press Delay:**
 
-•  The function calls delay() to wait for the boot button to be pressed before continuing. This ensures that any necessary initialization is done before proceeding.
+•  The function calls `delay()` to wait for the boot button to be pressed before continuing. This ensures that any necessary initialization is done before proceeding.
 
 2. **Random Number Generation:**
 
-•  The function calls random_no_Generator(buffer, sizeof(buffer)) to generate a random number and store it in the buffer.
+•  The function calls `random_no_Generator(buffer, sizeof(buffer))` to generate a random number and store it in the buffer.
 
 3. **BLE Initialization:**
 
-•  The function initializes BLE by calling ble_init(buffer, sizeof(buffer)). The buffer contains the random number generated earlier.
+•  The function initializes BLE by calling `ble_init(buffer, sizeof(buffer))`. The buffer contains the random number generated earlier.
 
-•  If BLE initialization is successful (ble_result == ESP_OK), it logs a success message.
+•  If BLE initialization is successful `(ble_result == ESP_OK)`, it logs a success message.
 
 4. **UDP Initialization:**
 
-•  The function initializes the UDP server by calling udp_init_().
+•  The function initializes the UDP server by calling `udp_init_()`.
 
-•  If UDP initialization is successful (udp_result == ESP_OK), it logs a success message.
+•  If UDP initialization is successful `(udp_result == ESP_OK)`, it logs a success message.
 
-•  The function then attempts to create a FreeRTOS task for the UDP server using xTaskCreate().
+•  The function then attempts to create a FreeRTOS task for the UDP server using `xTaskCreate()`.
 
 •  If task creation is successful, it logs a success message. If it fails, it logs an error.
 
@@ -251,11 +251,11 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
 
 •  **Purpose**: Handles GAP (Generic Access Profile) events, which include scanning and connection management.
 
-•  **ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT**: Triggered when scan parameters are set. The function starts scanning for 30 seconds.
+•  **`ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT`**: Triggered when scan parameters are set. The function starts scanning for 30 seconds.
 
-•  **ESP_GAP_BLE_SCAN_RESULT_EVT**: Triggered when a scan result is received. Checks if the scanned device matches the target device name. If it matches, it stops scanning and opens a GATT connection to the device.
+•  **`ESP_GAP_BLE_SCAN_RESULT_EVT`**: Triggered when a scan result is received. Checks if the scanned device matches the target device name. If it matches, it stops scanning and opens a GATT connection to the device.
 
-•  **ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT**: Triggered when scanning stops. No specific action is taken in this case.
+•  **`ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT`**: Triggered when scanning stops. No specific action is taken in this case.
 
 **2. esp_gattc_cb**
 
@@ -302,19 +302,19 @@ static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
 ```
 •  **Purpose**: Handles GATT (Generic Attribute Profile) client events related to service discovery, characteristic handling, and notifications.
 
-•  **ESP_GATTC_REG_EVT**: Triggered when the GATT client is registered. Starts scanning for BLE devices.
+•  **`ESP_GATTC_REG_EVT`**: Triggered when the GATT client is registered. Starts scanning for BLE devices.
 
-•  **ESP_GATTC_CONNECT_EVT**: Triggered when a connection to a BLE server is established. Initiates a service search on the connected device.
+•  **`ESP_GATTC_CONNECT_EVT`**: Triggered when a connection to a BLE server is established. Initiates a service search on the connected device.
 
-•  **ESP_GATTC_DISCONNECT_EVT**: Triggered when a disconnection occurs. No specific action is taken in this case.
+•  **`ESP_GATTC_DISCONNECT_EVT`**: Triggered when a disconnection occurs. No specific action is taken in this case.
 
-•  **ESP_GATTC_SEARCH_RES_EVT**: Triggered when a service is found during the service discovery process. If the service UUID matches the target UUID, it records the start and end handles of the service.
+•  **`ESP_GATTC_SEARCH_RES_EVT`**: Triggered when a service is found during the service discovery process. If the service UUID matches the target UUID, it records the start and end handles of the service.
 
-•  **ESP_GATTC_SEARCH_CMPL_EVT**: Triggered when the service search is complete. If the target service was found, it starts searching for characteristics within that service.
+•  **`ESP_GATTC_SEARCH_CMPL_EVT`**: Triggered when the service search is complete. If the target service was found, it starts searching for characteristics within that service.
 
-•  **ESP_GATTC_GET_CHAR_EVT**: Triggered when characteristics are retrieved. If the characteristic UUID matches the target UUID, it records the handle and registers for notifications on that characteristic.
+•  **`ESP_GATTC_GET_CHAR_EVT`**: Triggered when characteristics are retrieved. If the characteristic UUID matches the target UUID, it records the handle and registers for notifications on that characteristic.
 
-•  **ESP_GATTC_NOTIFY_EVT**: Triggered when a notification is received from the BLE server. It prints the notification data to the console.
+•  **`ESP_GATTC_NOTIFY_EVT`**: Triggered when a notification is received from the BLE server. It prints the notification data to the console.
 
 **3. register_for_notify**
 ```c
@@ -326,13 +326,13 @@ static void register_for_notify(esp_gatt_if_t gattc_if) {
 
 •  **Parameters**:   gattc_if: The GATT client interface.
 
-•  **Function**: Registers the client to receive notifications for the characteristic identified by char_handle from the remote device with remote_bda.
+•  **Function**: Registers the client to receive notifications for the characteristic identified by `char_handle` from the remote device with `remote_bda`.
 
 **Summary**
 
-•  **esp_gap_cb** handles BLE scanning and connection setup.
-•  **esp_gattc_cb** manages GATT service discovery, characteristic handling, and notifications.
-•  **register_for_notify** enables notifications for a specific characteristic from the remote device.
+•  **`esp_gap_cb`** handles BLE scanning and connection setup.
+•  **`esp_gattc_cb`** manages GATT service discovery, characteristic handling, and notifications.
+•  **`register_for_notify`** enables notifications for a specific characteristic from the remote device.
 
 ## wifi_udp_server
 
@@ -366,13 +366,13 @@ static void register_for_notify(esp_gatt_if_t gattc_if) {
 ```
 
 •  **Includes**: These headers provide various functionalities:
-•  unistd.h, string.h, sys/param.h: Standard C library functions.
-•  freertos/FreeRTOS.h, freertos/task.h, freertos/event_groups.h: FreeRTOS functions for task management and event groups.
-•  esp_system.h, esp_event.h, esp_log.h, nvs_flash.h, esp_netif.h: ESP-IDF system functions, event handling, logging, and network interface functions.
-•  protocol_examples_common.h: Example code for common protocol use.
-•  lwip/err.h, lwip/sockets.h, lwip/sys.h, lwip/netdb.h: lwIP functions for network and socket operations.
-•  esp_wifi.h: Wi-Fi driver functions.
-•  arpa/inet.h, netinet/in.h, errno.h: Networking and error handling functions.
+•  `unistd.h, string.h, sys/param.h`: Standard C library functions.
+•  `freertos/FreeRTOS.h`, `freertos/task.h`, `freertos/event_groups.h`: FreeRTOS functions for task management and event groups.
+•  `esp_system.h`, `esp_event.h`, `esp_log.h`, `nvs_flash.h`, `esp_netif.h`: ESP-IDF system functions, event handling, logging, and network interface functions.
+•  `protocol_examples_common.h`: Example code for common protocol use.
+•  `lwip/err.h`, `lwip/sockets.h`, `lwip/sys.h`, `lwip/netdb.h`: lwIP functions for network and socket operations.
+•  `esp_wifi.h`: Wi-Fi driver functions.
+•  `arpa/inet.h`, `netinet/in.h`, `errno.h`: Networking and error handling functions.
 
   
 
