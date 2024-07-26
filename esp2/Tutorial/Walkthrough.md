@@ -1,6 +1,8 @@
 ## ESP2 Tutorial 
 
 This tutorial will guide you through understanding a basic ESP-IDF application for initializing GATT  and UDP (User Datagram Protocol) functionalities while handling a boot button press. This example will help you get started with GPIO configuration, BLE and UDP setup, and FreeRTOS task creation.
+![FlowChart of the Dual-radio-communication-with-ESP32-and-Espressif-IDE](https://github.com/ayushsahu0/Dual-radio-communication-with-ESP32-and-Espressif-IDE/blob/main/esp2/Tutorial/ESP2.png)
+
 
 ## Introduction
 
