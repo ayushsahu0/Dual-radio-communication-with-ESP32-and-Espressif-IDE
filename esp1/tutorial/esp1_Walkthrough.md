@@ -1,6 +1,7 @@
 # ESP1 Tutorial
 
 This tutorial provides a step-by-step guide to create an ESP32 application that initializes a boot button, generates a random number, and sets up BLE (Bluetooth Low Energy) and UDP (User Datagram Protocol) functionalities.
+![FlowChart of the Dual-radio-communication-with-ESP32-and-Espressif-IDE](https://github.com/ayushsahu0/Dual-radio-communication-with-ESP32-and-Espressif-IDE/blob/main/esp1/tutorial/ESP1.png)
 
 ## Prerequisites
 
