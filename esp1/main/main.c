@@ -3,8 +3,8 @@
 #include <string.h>
 #include "driver/gpio.h"
 #include "sdkconfig.h"
-#include "ble.h"
-#include "wifi.h"
+#include "ble_GATT_client.h"
+#include "wifi_udp_server.h"
 #include "esp_err.h"
 
 #define BOOT_BUTTON_PIN GPIO_NUM_0 // Change this to the actual GPIO number connected to the boot button
