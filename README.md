@@ -17,6 +17,8 @@ This repository contains two projects developed using Espressif IDF for ESP32 mi
 - **UDP Client:** Enables ESP2 to send the random number received from ESP1 back via UDP.
 
 ## Communication Flow
+![FlowChart of the Dual-radio-communication-with-ESP32-and-Espressif-IDE](https://github.com/ayushsahu0/Dual-radio-communication-with-ESP32-and-Espressif-IDE/blob/main/esp2/Tutorial/ESP2.png)
+
 
 ### Bluetooth (GATT):
 
