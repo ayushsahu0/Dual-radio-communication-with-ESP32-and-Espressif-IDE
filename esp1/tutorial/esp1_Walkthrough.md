@@ -26,8 +26,8 @@ To follow this tutorial, you need:
    #include <string.h>
    #include "driver/gpio.h"   // GPIO driver library
    #include "sdkconfig.h"
-   #include "ble.h"          // Bluetooth Low Energy library
-   #include "wifi.h"         // WiFi library
+   #include "ble_GATT_client.h"          // Bluetooth Low Energy library
+   #include "wifi_udp_server.h"         // WiFi library
    #include "esp_err.h"
    #define BOOT_BUTTON_PIN GPIO_NUM_0 // GPIO pin connected to the boot button
    #define MAINTAG "MAIN"  // Tag for logging
