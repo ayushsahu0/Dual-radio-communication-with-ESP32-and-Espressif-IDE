@@ -3,8 +3,8 @@
 #include <string.h>
 #include "driver/gpio.h"
 #include "sdkconfig.h"
-#include "ble.h"
-#include "wifi.h"
+#include "ble_GATT_server.h"
+#include "wifi_udp_client.h"
 #include <inttypes.h>
 #include <stdint.h>
 
